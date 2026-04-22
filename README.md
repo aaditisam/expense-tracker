@@ -1,3 +1,9 @@
+## 🚀 Live Demo
+
+Frontend: https://expense-tracker-theta-ochre-55.vercel.app  
+Backend: https://expense-tracker-u9u2.onrender.com/api
+
+
 # PaisaTrack — Expense Tracker
 
 A minimal full-stack personal expense tracker with a Node.js/Express backend and React + Redux Toolkit frontend.
@@ -22,8 +28,6 @@ npm install
 npm run dev        # starts on http://localhost:5173
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
 ---
 
 ## Project Structure
@@ -34,8 +38,7 @@ expense-tracker/
 │   ├── src/
 │   │   ├── index.js          # Express app entry
 │   │   ├── routes.js         # API route handlers
-│   │   ├── expenses.js       # Business logic + DB queries
-│   │   ├── db.js             # SQLite connection + schema
+│   │   ├── expenses.js       # Business logic + in-memory store
 │   │   ├── validation.js     # Input validation
 │   │   └── expenses.test.js  # Integration tests
 │   └── package.json
@@ -120,11 +123,37 @@ The `POST /expenses` endpoint accepts an optional `Idempotency-Key` request head
 
 ### Persistence
 
-**SQLite via `better-sqlite3`** — synchronous, zero-config, single-file DB that survives restarts. Appropriate for a personal tool where concurrent write load is negligible. WAL mode enabled for better read concurrency. Would swap for PostgreSQL in a multi-user or deployed scenario.
+Used an **in-memory data store** instead of SQLite.
+
+Reason:
+- Avoided native dependency issues (`better-sqlite3`) in restricted environments
+- Simplified setup and ensured smooth deployment on Render
+
+Trade-off:
+- Data resets when the server restarts
+
+Design choice:
+The architecture cleanly separates data logic, so replacing this with SQLite or PostgreSQL would require minimal changes.
 
 ### Frontend state
 
-**Redux Toolkit** manages all server state (expense list, filters, submit lifecycle). The filter state lives in Redux so that `ExpenseForm` can trigger a re-fetch with the currently active filters after a successful submission, keeping the list consistent.
+Redux Toolkit manages all server state (expenses, filters, submit lifecycle).
+
+Optimizations:
+- Avoided unnecessary refetches by updating local state on successful mutations
+- Prevented duplicate UI entries by respecting backend idempotency responses
+
+This results in a faster and smoother user experience.
+
+---
+## Deployment
+
+- **Frontend** deployed on Vercel
+- **Backend** deployed on Render
+
+Notes:
+- Backend may take ~5–10 seconds to respond after inactivity (cold start)
+- Frontend communicates with backend via environment variable (`VITE_API_URL`)
 
 ---
 
@@ -139,13 +168,19 @@ Tests cover: money conversion, idempotency correctness, category filtering, and 
 
 ---
 
-## Trade-offs & Intentional Omissions
+## Trade-offs Due to Time Constraints
 
-| Decision                        | Reason                                                                   |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| No auth                         | Out of scope for a personal tool exercise                                |
-| No React Query / SWR            | Redux Toolkit is explicitly required; kept state management in one place |
-| SQLite, not Postgres            | Zero-setup; easy to swap later                                           |
-| No pagination                   | Small data set; out of scope for the timebox                             |
-| No edit/delete                  | Not in the acceptance criteria                                           |
-| CSS without a component library | Keeps bundle small; full design control                                  |
+- Used in-memory storage instead of a persistent database
+- Limited test coverage to core functionality
+- Did not implement pagination or advanced filtering
+- Minimal UI animations to focus on core functionality
+
+---
+
+## What Was Intentionally Not Implemented
+
+- Authentication / user accounts
+- Edit or delete expenses
+- Persistent database (SQLite/Postgres)
+- Pagination or infinite scrolling
+- Advanced analytics (charts, trends)
