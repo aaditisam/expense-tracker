@@ -1,0 +1,7 @@
+node_modules/
+backend/expenses.db
+backend/expenses.db-shm
+backend/expenses.db-wal
+dist/
+.env
+.DS_Store
